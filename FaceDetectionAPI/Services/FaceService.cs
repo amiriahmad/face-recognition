@@ -1,12 +1,12 @@
-﻿using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-
-using Emgu.CV;
+﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Face;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using FaceDetectionAPI.Data;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace FaceDetectionAPI.Services;
 
@@ -18,16 +18,16 @@ public class FaceService
     private readonly string _haarcascadePath;
     private readonly LBPHFaceRecognizer _recognizer;
     private readonly CascadeClassifier _faceDetector;
-    private double _threshold = 0.6;
-    private string _datasetPath = @"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Dataset\TrainingModels";
+    private double _threshold = 50;
+    private string _datasetPath = DataPaths.TrainingModelsPath;
 
-    int _faceSize = 900;
+    int _faceSize = 500;
 
     public FaceService(string haarcascadePath)
     {
         _haarcascadePath = haarcascadePath;
         _faceDetector = new CascadeClassifier(haarcascadePath);
-        _recognizer = new LBPHFaceRecognizer();
+        _recognizer = new LBPHFaceRecognizer(1, 20, 8, 8, 100);
 
         LoadTrainingData();
 
@@ -124,50 +124,39 @@ public class FaceService
             throw;
         }
 
-
-
     }
 
     public double RecognizeFace()
     {
-        //string imagePath = @"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Dataset\TestingModels\a2.jpg";
-        string imagePath = @"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Dataset\TestingModels\y5.jpg";
-        //string imagePath = @"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Dataset\TestingModels\k4.jpg";
+        string imagePath = @$"{DataPaths.TestingModelsPath}\y5.jpg";
 
-        //TrainRecognizer();
-
-        double confidence = 999999;
+        double confidence = 0;
 
         var image = new Image<Gray, byte>(imagePath);
 
-        //var faces = AugmentData(image);
         var faces = AugmentData(image) ?? throw new Exception("no face!!!");
+
+
 
         SaveFace(faces, 33333);
 
-        //var faces = DetectAndNormalizeFace(image) ?? throw new Exception("no face!!!");
+        if (faces is not null)
+        {
+            foreach (var f in faces)
+            {
+                var predictionResult = _recognizer.Predict(f);
+                if (predictionResult.Distance > confidence)
+                {
+                    confidence = predictionResult.Distance;
+                }
+            }
+        }
 
+        //var predictionResult = _recognizer.Predict(image);
 
+        //confidence = predictionResult.Distance;
 
-        //if (faces is not null)
-        //{
-        //    foreach (var f in faces)
-        //    {
-        //        var predictionResult = _recognizer.Predict(f);
-        //        if (predictionResult.Distance < confidence)
-        //        {
-        //            confidence = predictionResult.Distance;
-        //        }
-        //    }
-
-
-        //}
-
-        var predictionResult = _recognizer.Predict(faces[0]);
-
-        confidence = predictionResult.Distance;
-
-        return confidence; // predictionResult.Distance;//< _threshold;
+        return confidence;
     }
 
     private Image<Bgr, byte> ConvertBitmapToImage(Bitmap bitmap)
@@ -217,32 +206,28 @@ public class FaceService
 
         if (faces.Length > 0)
         {
-            //var face = faces[0];
             foreach (var face in faces)
             {
-                var faceImg = image.GetSubRect(face).Resize(_faceSize, _faceSize, Inter.Linear);
+                var faceImg = image.GetSubRect(face).Resize(_faceSize, _faceSize, Inter.LinearExact);
                 CvInvoke.EqualizeHist(faceImg, faceImg);
                 images.Add(faceImg);
 
             }
 
-            return images;
-            //var faceImg = image.GetSubRect(face).Resize(200, 200, Inter.Cubic);
-            //CvInvoke.EqualizeHist(faceImg, faceImg);
-            //return faceImg;
         }
+        return images;
 
-        return null;
     }
 
     private List<Image<Gray, byte>> AugmentData(Image<Gray, byte> image)
     {
         var augmentedImages = new List<Image<Gray, byte>>();
-        var scales = new double[] { 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0, 2, 2 };
+        //var scales = new double[] { 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0, 2, 2 };
+        var scales = new double[] { 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, };
 
         foreach (var scale in scales)
         {
-            var resized = image.Resize(scale, Inter.Cubic);
+            var resized = image.Resize(scale, Inter.LinearExact);
             var normalized = DetectAndNormalizeFace(resized);
             if (normalized is not null)
             {
@@ -269,24 +254,24 @@ public class FaceService
             {
                 for (var i = 0; i < grayImages.Count; i++)
                 {
-                    var face = grayImages[i].Resize(_faceSize, _faceSize, Inter.Cubic);
-                    var savingPath = $@"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\DetectedFaces\face{i + 1}.bmp";
+                    var face = grayImages[i].Resize(_faceSize, _faceSize, Inter.LinearExact);
+                    var savingPath = @$"{DataPaths.DetectedFacesPath}\face{i + 1}.bmp";
                     face.Save(savingPath);
 
-                    using var writer = new StreamWriter(@"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Data\FaceLabelList.txt", true);
-                    writer.WriteLine(string.Format("face{0}:{1}", (i + 1), $"person{label}"));
+                    //using var writer = new StreamWriter(DataPaths.FaceLabelListPath, true);
+                    //writer.WriteLine(string.Format("face{0}:{1}", (i + 1), $"person{label}"));
                 }
             }
             else
             {
                 for (var i = 0; i < grayImages.Count; i++)
                 {
-                    var face = grayImages[i].Resize(_faceSize, _faceSize, Inter.Cubic);
-                    var savingPath = $@"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Faces\face{i + 1}.bmp";
+                    var face = grayImages[i].Resize(_faceSize, _faceSize, Inter.LinearExact);
+                    var savingPath = $@"{DataPaths.FacesPath}\face{i + 1}.bmp";
                     face.Save(savingPath);
 
-                    using var writer = new StreamWriter(@"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Data\FaceLabelList.txt", true);
-                    writer.WriteLine(string.Format("face{0}:{1}", (i + 1), $"person{label}"));
+                    //using var writer = new StreamWriter(DataPaths.FaceLabelListPath, true);
+                    //writer.WriteLine(string.Format("face{0}:{1}", (i + 1), $"person{label}"));
                 }
             }
 
