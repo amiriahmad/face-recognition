@@ -5,3 +5,7 @@
 /.vs
 /FaceDetectionAPI/bin/Debug/net8.0
 /FaceDetectionAPI/obj
+/FaceDetectionAPI/Data/FaceLabelList.txt
+/FaceDetectionAPI/Dataset
+*.bmp
+/FaceDetectionAPI/Data/FaceLabelList.txt

@@ -1,4 +1,5 @@
-﻿using Emgu.CV;
+﻿//using DlibDotNet;
+using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Face;
 using Emgu.CV.Structure;
@@ -18,18 +19,20 @@ public class FaceService
     private readonly string _haarcascadePath;
     private readonly LBPHFaceRecognizer _recognizer;
     private readonly CascadeClassifier _faceDetector;
-    private double _threshold = 50;
-    private string _datasetPath = DataPaths.TrainingModelsPath;
-
-    int _faceSize = 500;
+    private readonly double _threshold = 100;
+    private readonly int _neighbors = 13;
+    private readonly string _datasetPath = DataPaths.TrainingModelsPath;
+    private readonly int _faceSize = 400;
 
     public FaceService(string haarcascadePath)
     {
         _haarcascadePath = haarcascadePath;
         _faceDetector = new CascadeClassifier(haarcascadePath);
-        _recognizer = new LBPHFaceRecognizer(1, 20, 8, 8, 100);
+        _recognizer = new LBPHFaceRecognizer(1, _neighbors, 8, 8, _threshold);
 
         LoadTrainingData();
+
+        //var sp = ShapePredictor.Deserialize(DataPaths.ShapePredicatorPath);
 
     }
 
@@ -140,6 +143,7 @@ public class FaceService
 
         SaveFace(faces, 33333);
 
+
         if (faces is not null)
         {
             foreach (var f in faces)
@@ -150,9 +154,11 @@ public class FaceService
                     confidence = predictionResult.Distance;
                 }
             }
+
+
         }
 
-        //var predictionResult = _recognizer.Predict(image);
+        //var predictionResult = _recognizer.Predict(faces[0]);
 
         //confidence = predictionResult.Distance;
 
@@ -200,7 +206,8 @@ public class FaceService
 
     private List<Image<Gray, byte>> DetectAndNormalizeFace(Image<Gray, byte> image)
     {
-        var faces = _faceDetector.DetectMultiScale(image, 1.1, 10, new System.Drawing.Size(20, 20));
+        var faces = _faceDetector.DetectMultiScale(image, 1.1, _neighbors, new System.Drawing.Size(20, 20));
+        //var faces = _faceDetector.DetectMultiScale(image);
 
         List<Image<Gray, byte>> images = [];
 
@@ -222,8 +229,7 @@ public class FaceService
     private List<Image<Gray, byte>> AugmentData(Image<Gray, byte> image)
     {
         var augmentedImages = new List<Image<Gray, byte>>();
-        //var scales = new double[] { 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0, 2, 2 };
-        var scales = new double[] { 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, };
+        var scales = new double[] { 0.6, 0.8, 1.0, 1.2, 1.4, 1.6 };
 
         foreach (var scale in scales)
         {
@@ -282,11 +288,8 @@ public class FaceService
             throw;
         }
 
-        //GetFacesList();
 
     }
-
-
 
 
 }
