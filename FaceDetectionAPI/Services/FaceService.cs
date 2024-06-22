@@ -1,13 +1,15 @@
 ﻿//using DlibDotNet;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Face;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+
 using FaceDetectionAPI.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 
 namespace FaceDetectionAPI.Services;
 
@@ -131,7 +133,7 @@ public class FaceService
 
     public double RecognizeFace()
     {
-        string imagePath = @$"{DataPaths.TestingModelsPath}\y5.jpg";
+        string imagePath = @$"{DataPaths.TestingModelsPath}\ak1.jpg";
 
         double confidence = 0;
 
