@@ -1,12 +1,13 @@
-﻿using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-
+﻿//using DlibDotNet;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Face;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using FaceDetectionAPI.Data;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace FaceDetectionAPI.Services;
 
@@ -20,9 +21,8 @@ public class FaceService
     private readonly CascadeClassifier _faceDetector;
     private readonly double _threshold = 100;
     private readonly int _neighbors = 13;
-    private readonly string _datasetPath = @"D:\Projects\Personal\FaceDetectionAPI\FaceDetectionAPI\Dataset\TrainingModels\";
-
-    int _faceSize = 400;
+    private readonly string _datasetPath = DataPaths.TrainingModelsPath;
+    private readonly int _faceSize = 400;
 
     public FaceService(string haarcascadePath)
     {
@@ -31,6 +31,8 @@ public class FaceService
         _recognizer = new LBPHFaceRecognizer(1, _neighbors, 8, 8, _threshold);
 
         LoadTrainingData();
+
+        //var sp = ShapePredictor.Deserialize(DataPaths.ShapePredicatorPath);
 
     }
 
@@ -125,27 +127,21 @@ public class FaceService
             throw;
         }
 
-
-
     }
 
     public double RecognizeFace()
     {
-        //string imagePath = @"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Dataset\TestingModels\a2.jpg";
-        string imagePath = @"D:\Projects\Personal\FaceDetectionAPI\FaceDetectionAPI\Dataset\TestingModels\ak1.jpg";
-        //string imagePath = @"D:\Projects\Demos\FaceDetectionAPI\FaceDetectionAPI\Dataset\TestingModels\k4.jpg";
+        string imagePath = @$"{DataPaths.TestingModelsPath}\y5.jpg";
 
         double confidence = 0;
 
         var image = new Image<Gray, byte>(imagePath);
 
-        //var faces = AugmentData(image);
         var faces = AugmentData(image) ?? throw new Exception("no face!!!");
 
+
+
         SaveFace(faces, 33333);
-
-        //var faces = DetectAndNormalizeFace(image) ?? throw new Exception("no face!!!");
-
 
 
         if (faces is not null)
@@ -166,7 +162,7 @@ public class FaceService
 
         //confidence = predictionResult.Distance;
 
-        return confidence; // predictionResult.Distance;//< _threshold;
+        return confidence;
     }
 
     private Image<Bgr, byte> ConvertBitmapToImage(Bitmap bitmap)
@@ -217,7 +213,6 @@ public class FaceService
 
         if (faces.Length > 0)
         {
-            //var face = faces[0];
             foreach (var face in faces)
             {
                 var faceImg = image.GetSubRect(face).Resize(_faceSize, _faceSize, Inter.LinearExact);
@@ -226,13 +221,9 @@ public class FaceService
 
             }
 
-            return images;
-            //var faceImg = image.GetSubRect(face).Resize(200, 200, Inter.Cubic);
-            //CvInvoke.EqualizeHist(faceImg, faceImg);
-            //return faceImg;
         }
+        return images;
 
-        return null;
     }
 
     private List<Image<Gray, byte>> AugmentData(Image<Gray, byte> image)
@@ -270,10 +261,10 @@ public class FaceService
                 for (var i = 0; i < grayImages.Count; i++)
                 {
                     var face = grayImages[i].Resize(_faceSize, _faceSize, Inter.LinearExact);
-                    var savingPath = $@"D:\Projects\Personal\FaceDetectionAPI\FaceDetectionAPI\DetectedFaces\face{i + 1}.bmp";
+                    var savingPath = @$"{DataPaths.DetectedFacesPath}\face{i + 1}.bmp";
                     face.Save(savingPath);
 
-                    //using var writer = new StreamWriter(@"D:\Projects\Personal\FaceDetectionAPI\FaceDetectionAPI\Data\FaceLabelList.txt", true);
+                    //using var writer = new StreamWriter(DataPaths.FaceLabelListPath, true);
                     //writer.WriteLine(string.Format("face{0}:{1}", (i + 1), $"person{label}"));
                 }
             }
@@ -282,10 +273,10 @@ public class FaceService
                 for (var i = 0; i < grayImages.Count; i++)
                 {
                     var face = grayImages[i].Resize(_faceSize, _faceSize, Inter.LinearExact);
-                    var savingPath = $@"D:\Projects\Personal\FaceDetectionAPI\FaceDetectionAPI\Faces\face{i + 1}.bmp";
+                    var savingPath = $@"{DataPaths.FacesPath}\face{i + 1}.bmp";
                     face.Save(savingPath);
 
-                    //using var writer = new StreamWriter(@"D:\Projects\Personal\FaceDetectionAPI\FaceDetectionAPI\Data\FaceLabelList.txt", true);
+                    //using var writer = new StreamWriter(DataPaths.FaceLabelListPath, true);
                     //writer.WriteLine(string.Format("face{0}:{1}", (i + 1), $"person{label}"));
                 }
             }
