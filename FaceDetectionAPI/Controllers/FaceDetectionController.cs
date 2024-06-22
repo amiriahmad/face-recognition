@@ -11,17 +11,19 @@ public class FaceDetectionController : ControllerBase
     private readonly FaceService _faceService;
     private readonly EigenService _eigenService;
 
-    private readonly Service3 _service3;
+    private readonly SvmService _svmService;
 
-    public FaceDetectionController(FaceService faceDetectionService
-        //EigenService eigenService,
-        //Service3 service3
+    public FaceDetectionController(
+        FaceService faceDetectionService,
+        SvmService svmService
         )
     {
         _faceService = faceDetectionService;
-        //_eigenService = eigenService;
-        //_service3 = service3;
+        _svmService = svmService;
     }
+
+
+
     [HttpPost("DetectFaces")]
     public IActionResult DetectFaces()
     {
@@ -37,21 +39,15 @@ public class FaceDetectionController : ControllerBase
 
     }
 
-    //[HttpPost("EigenMatch")]
-    //public IActionResult EigenMatch()
-    //{
-    //    var res = _eigenService.NormalizeAndRecognizeFace();
-    //    //var res = _eigenService.DetectAndRecognizeFace();
+    [HttpPost("SvmRecognizer")]
+    public IActionResult SvmRecognizer()
+    {
 
-    //    if (res?.Count > 0)
-    //    {
-    //        return Ok(res);
-    //    }
+        var result = _svmService.RecognizeFace();
 
-    //    return BadRequest("hhhmmmmmmmmmmmmmmmmmmmm");
+        return Ok(result);
 
-
-    //}
+    }
 
 
 

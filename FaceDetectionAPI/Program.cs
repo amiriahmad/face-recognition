@@ -14,10 +14,10 @@ var haarcascadePath = Path.Combine(builder.Environment.ContentRootPath, "Data", 
 var haarcascadeAltTreePath = Path.Combine(builder.Environment.ContentRootPath, "Data", "haarcascade_frontalface_alt_tree.xml");
 
 builder.Services.AddSingleton(new FaceService(haarcascadePath));
-//builder.Services.AddSingleton(new EigenService(haarcascadePath));
-//builder.Services.AddSingleton(new Service3(builder.Environment, haarcascadePath));
 
-//builder.Services.AddSingleton(new Face2Service(haarcascadePath));
+builder.Services.AddSingleton(new SvmService(haarcascadePath));
+
+builder.Services.AddSingleton(new HelperService(haarcascadePath));
 
 var app = builder.Build();
 

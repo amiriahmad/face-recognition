@@ -5,3 +5,14 @@
 /.vs
 /FaceDetectionAPI/bin/Debug/net8.0
 /FaceDetectionAPI/obj
+/FaceDetectionAPI/Dataset/AK
+/FaceDetectionAPI/Dataset/TrainingModels/Y
+*.bmp
+/FaceDetectionAPI/Data/FaceLabelList.txt
+/FaceDetectionAPI/Faces/face1.bmp
+/FaceDetectionAPI/Dataset/Y/y2.jpg
+/FaceDetectionAPI/Dataset/Y/y3.jpg
+/FaceDetectionAPI/Dataset/Y/y4.jpg
+/FaceDetectionAPI/Dataset/Y/y6.jpg
+/FaceDetectionAPI/Dataset/TrainingModels/AK/ak2.jpg
+/FaceDetectionAPI/DetectedFaces/face27.bmp
