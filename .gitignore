@@ -17,3 +17,4 @@
 /FaceDetectionAPI/Dataset/TrainingModels/AK/ak2.jpg
 /FaceDetectionAPI/DetectedFaces/face27.bmp
 /FaceDetectionAPI/Data/DataPaths.cs
+*.jpg
